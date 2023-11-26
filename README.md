@@ -1,7 +1,8 @@
 # iPanel-MCDReforged
 
 <p align="center">
-  <img src="https://ipaneldev.github.io/img/logo.png" width="50">
+  <img src="https://ipaneldev.github.io/img/logo.png" height="70" alt="iPanel">
+  <img src="https://raw.githubusercontent.com/Fallen-Breath/MCDReforged/master/logo_long.png" height=70 alt="MCDR-banner">
   <br/>
   <br/>
   <a href="https://www.python.org/">

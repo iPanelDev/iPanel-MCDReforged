@@ -1,5 +1,6 @@
 import datetime
 import json
+import sys
 from time import sleep
 from hashlib import md5
 
@@ -79,7 +80,7 @@ class WsConnnection():
                       'customName': self.config.custom_name,
                       'metadata': {
                           'name': 'MCDReforged',
-                          'version': ''
+                          'environment': 'Python {}.{}.{}'.format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro)
                       },
                       'instanceId': get_instance_id()
                   })
