@@ -1,0 +1,33 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  Build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.11.3"
+      
+      - name: Install MCDReforged and ohter requirements
+        run: |
+          pip install mcdreforged
+          pip install -r requirements.txt
+          mcdreforged -V
+      
+      - name: Pack plugin
+        run: pack.bat
+      
+      - name: Upload files
+        uses: actions/upload-artifact@v3
+        with:
+          path: ./*.mcdr

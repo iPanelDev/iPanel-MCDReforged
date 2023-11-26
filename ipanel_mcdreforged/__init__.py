@@ -1,4 +1,3 @@
-
 from threading import Thread
 
 from mcdreforged.api.all import *
@@ -39,13 +38,13 @@ def on_unload(server: PluginServerInterface):
 
 def on_server_start(server: PluginServerInterface):
     '''服务器启动'''
-    connection.send('event', 'server_start')
+    connection.send('broadcast', 'server_start')
     server.set_exit_after_stop_flag(False)  # 关闭服务器停止后退出
 
 
 def on_server_stop(server: PluginServerInterface, server_return_code: int):
     '''服务器停止'''
-    connection.send('event', 'server_stop', server_return_code)
+    connection.send('broadcast', 'server_stop', server_return_code)
 
 
 def on_info(server: PluginServerInterface, info: Info):

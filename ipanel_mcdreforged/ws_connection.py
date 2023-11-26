@@ -1,14 +1,15 @@
+import datetime
 import json
-import time
+from time import sleep
 from hashlib import md5
 
-from .config import Config
-from .infos import get_server_info, get_sys_info
-from .logger import logger
 from mcdreforged.api.all import *
-from .packet import Packet
 from websocket import WebSocketApp
 
+from .config import Config
+from .logger import logger
+from .packet import Packet
+from .utils import get_instance_id, get_server_info, get_system_info
 
 inputs = []
 outputs = []
@@ -45,7 +46,7 @@ class WsConnnection():
 
     def wait_for_reconnect(self):
         '''等待重连'''
-        time.sleep(self.config.reconnect.interval/1000)
+        sleep(self.config.reconnect.interval/1000)
         logger.info('尝试重连中...{}/{}'.format(self.restart_times,
                     self.config.reconnect.maxTimes))
         self.connect()
@@ -68,6 +69,20 @@ class WsConnnection():
     def on_open(self, this: WebSocketApp):
         '''开启事件'''
         logger.info('已连接到"{}"'.format(self.config.websocket.addr))
+
+        time = datetime.datetime.now().isoformat()
+        self.send('request',
+                  'verify',
+                  {
+                      'time': time,
+                      'md5': md5('{}.{}'.format(time, self.config.websocket.password).encode(encoding='UTF-8')).hexdigest(),
+                      'customName': self.config.custom_name,
+                      'metadata': {
+                          'name': 'MCDReforged',
+                          'version': ''
+                      },
+                      'instanceId': get_instance_id()
+                  })
 
     def on_close(self, this: WebSocketApp, code: int = 0, _: str = None):
         '''关闭事件'''
@@ -96,7 +111,7 @@ class WsConnnection():
             case 'event':
                 self.events_handle(packet)
 
-            case 'action':
+            case 'request':
                 self.actions_handle(packet)
 
             case _:
@@ -105,23 +120,14 @@ class WsConnnection():
     def actions_handle(self, packet: Packet):
         '''处理action数据包'''
         match packet.sub_type:
-            case 'verify_request':
-                # 请求验证
-                self.send('action',
-                          'verify',
-                          {
-                              'token': md5((packet.data['random_key']+self.config.websocket.password).encode(encoding='UTF-8')).hexdigest(),
-                              'client_type': 'instance',
-                              'custom_name': self.config.custom_name
-                          })
 
             case 'heartbeat':
                 # 心跳
                 self.send(
-                    'action',
+                    'return',
                     'heartbeat',
                     {
-                        'sys': get_sys_info(),
+                        'system': get_system_info(),
                         'server': get_server_info()
                     }
                 )
@@ -148,7 +154,7 @@ class WsConnnection():
                     instance.execute(line)
                     list.append(line)
 
-                self.send('event', 'server_input', list)
+                self.send('broadcast', 'server_input', list)
 
     def events_handle(self, packet: Packet):
         '''处理event数据包'''
@@ -170,21 +176,21 @@ class WsConnnection():
         try:
             self._ws.send(json.dumps({
                 'type': type,
-                'sub_type': sub_type,
+                'subType': sub_type,
                 'data': data
             }, ensure_ascii=False))
         except Exception as e:
-            logger.debug(e)
+            logger.exception(e)
 
     def sync_cache(self):
         '''同步缓存'''
         while not unload:
             if len(inputs) > 0:
-                self.send('event', 'server_input', inputs)
+                self.send('broadcast', 'server_input', inputs)
                 inputs.clear()
 
             if len(outputs) > 0:
-                self.send('event', 'server_output', outputs)
+                self.send('broadcast', 'server_output', outputs)
                 outputs.clear()
 
-            time.sleep(0.25)
+            sleep(0.25)

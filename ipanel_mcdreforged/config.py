@@ -1,7 +1,8 @@
 import json
 import os
 from pathlib import Path
-from .constants import PATH, CONFIG_PATH, DEFAULT_CONFIG
+
+from .constants import CONFIG_PATH, DEFAULT_CONFIG, PATH
 from .logger import logger
 from .metadata import PLUGIN_METADATA
 
