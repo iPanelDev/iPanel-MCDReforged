@@ -25,7 +25,7 @@ jobs:
           mcdreforged -V
       
       - name: Pack plugin
-        run: pack.bat
+        run: mcdreforged pack
       
       - name: Upload files
         uses: actions/upload-artifact@v3
